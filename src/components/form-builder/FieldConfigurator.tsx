@@ -1,0 +1,279 @@
+import React, { useState } from 'react';
+import { FormField, ValidationType } from '../../models/field';
+import {
+  Typography,
+  TextField,
+  Switch,
+  FormControlLabel,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Button,
+  Chip,
+  Box,
+  Divider
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { getDefaultValidationMessage } from '../../utils/validation';
+
+interface FieldConfiguratorProps {
+  field: FormField;
+  onUpdate: (updatedField: FormField) => void;
+}
+export interface ValidationRule {
+  type: ValidationType;
+  value?: string | number;  
+  message: string;          
+}
+
+const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }) => {
+  const [newOption, setNewOption] = useState('');
+  const [newValidationType, setNewValidationType] = useState<ValidationType>(ValidationType.REQUIRED);
+  const [validationValue, setValidationValue] = useState('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, checked } = e.target;
+    onUpdate({
+      ...field,
+      [name]: name === 'required' ? checked : value
+    });
+  };
+
+  const handleOptionsChange = (index: number, value: string) => {
+    const newOptions = [...(field.options || [])];
+    newOptions[index] = value;
+    onUpdate({
+      ...field,
+      options: newOptions
+    });
+  };
+
+  const addOption = () => {
+    if (newOption.trim()) {
+      onUpdate({
+        ...field,
+        options: [...(field.options || []), newOption.trim()]
+      });
+      setNewOption('');
+    }
+  };
+
+  const removeOption = (index: number) => {
+    const newOptions = [...(field.options || [])];
+    newOptions.splice(index, 1);
+    onUpdate({
+      ...field,
+      options: newOptions
+    });
+  };
+
+  const addValidation = () => {
+    const newValidation = {
+      type: newValidationType,
+      value: validationValue,
+      message: getDefaultValidationMessage(newValidationType)
+    };
+
+    onUpdate({
+      ...field,
+      validations: [...(field.validations || []), newValidation]
+    });
+
+    setValidationValue('');
+  };
+
+  const removeValidation = (index: number) => {
+    const newValidations = [...(field.validations || [])];
+    newValidations.splice(index, 1);
+    onUpdate({
+      ...field,
+      validations: newValidations
+    });
+  };
+
+  const updateValidation = (index: number, updates: Partial<ValidationRule>) => {
+    const newValidations = [...(field.validations || [])];
+    newValidations[index] = { ...newValidations[index], ...updates };
+    onUpdate({
+      ...field,
+      validations: newValidations
+    });
+  };
+
+  const toggleDerivedField = () => {
+    onUpdate({
+      ...field,
+      isDerived: !field.isDerived,
+      parentFields: !field.isDerived ? [] : undefined,
+      derivationLogic: !field.isDerived ? '' : undefined
+    });
+  };
+
+  return (
+    <div>
+      <Typography variant="h6" gutterBottom>Field Configuration</Typography>
+
+      <Box display="flex" flexDirection="column" gap={2}>
+        <Box>
+          <TextField
+            name="label"
+            label="Label"
+            value={field.label}
+            onChange={handleChange}
+            fullWidth
+          />
+        </Box>
+
+        <Box>
+          <FormControlLabel
+            control={
+              <Switch
+                name="required"
+                checked={field.required}
+                onChange={handleChange}
+              />
+            }
+            label="Required"
+          />
+        </Box>
+
+        {['select', 'radio', 'checkbox'].includes(field.type) && (
+          <Box>
+            <Typography variant="subtitle1" gutterBottom>Options</Typography>
+            {field.options?.map((option, index) => (
+              <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <TextField
+                  value={option}
+                  onChange={(e) => handleOptionsChange(index, e.target.value)}
+                  fullWidth
+                  size="small"
+                />
+                <Button
+                  onClick={() => removeOption(index)}
+                  color="error"
+                  sx={{ ml: 1 }}
+                >
+                  Remove
+                </Button>
+              </Box>
+            ))}
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              <TextField
+                value={newOption}
+                onChange={(e) => setNewOption(e.target.value)}
+                label="New option"
+                fullWidth
+                size="small"
+              />
+              <Button
+                onClick={addOption}
+                startIcon={<AddIcon />}
+                sx={{ ml: 1 }}
+              >
+                Add
+              </Button>
+            </Box>
+          </Box>
+        )}
+
+        <Box>
+          <Typography variant="subtitle1" gutterBottom>Validations</Typography>
+          {field.validations?.map((validation, index) => (
+            <Box key={index} sx={{ mb: 2, p: 1, border: '1px solid #eee', borderRadius: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Chip label={validation.type} />
+                <Button
+                  size="small"
+                  onClick={() => removeValidation(index)}
+                  color="error"
+                >
+                  Remove
+                </Button>
+              </Box>
+              {['minLength', 'maxLength', 'min', 'max'].includes(validation.type) && (
+                <TextField
+                  label="Value"
+                  type="number"
+                  value={validation.value || ''}
+                  onChange={(e) => updateValidation(index, { value: e.target.value })}
+                  fullWidth
+                  size="small"
+                  sx={{ mb: 1 }}
+                />
+              )}
+              <TextField
+                label="Error message"
+                value={validation.message}
+                onChange={(e) => updateValidation(index, { message: e.target.value })}
+                fullWidth
+                size="small"
+              />
+            </Box>
+          ))}
+
+          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+            <FormControl sx={{ minWidth: 120, mr: 1 }} size="small">
+              <InputLabel>Validation Type</InputLabel>
+              <Select
+                value={newValidationType}
+                onChange={(e) => setNewValidationType(e.target.value as ValidationType)}
+                label="Validation Type"
+              >
+                {Object.values(ValidationType).map(type => (
+                  <MenuItem key={type} value={type}>{type}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {['minLength', 'maxLength', 'min', 'max'].includes(newValidationType) && (
+              <TextField
+                label="Value"
+                type="number"
+                value={validationValue}
+                onChange={(e) => setValidationValue(e.target.value)}
+                size="small"
+                sx={{ mr: 1, width: 100 }}
+              />
+            )}
+
+            <Button
+              onClick={addValidation}
+              startIcon={<AddIcon />}
+            >
+              Add Validation
+            </Button>
+          </Box>
+        </Box>
+
+        <Box>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={field.isDerived || false}
+                onChange={toggleDerivedField}
+              />
+            }
+            label="Derived Field"
+          />
+        </Box>
+
+        {field.isDerived && (
+          <Box>
+            <TextField
+              label="Derivation Logic"
+              value={field.derivationLogic || ''}
+              onChange={(e) => onUpdate({ ...field, derivationLogic: e.target.value })}
+              fullWidth
+              multiline
+              rows={3}
+              placeholder="Example: ageFromDOB"
+            />
+          </Box>
+        )}
+      </Box>
+    </div>
+  );
+};
+
+export default FieldConfigurator;
