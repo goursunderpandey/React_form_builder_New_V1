@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { FormField, FormSchema, FieldType, defaultFieldConfig } from '../models/field';
-import { saveForm, getForms, getFormById } from '../services/formStorage';
+import { saveForm, getForms } from '../services/formStorage';
 
 interface FormBuilderState {
   currentForm: {
@@ -44,8 +44,8 @@ export const formBuilderSlice = createSlice({
         label: `Field ${state.currentForm.fields.length + 1}`,
         required: false, // explicitly set required
         ...defaultFieldConfig,
-        options: action.payload.type === 'select' || action.payload.type === 'radio' 
-          ? ['Option 1', 'Option 2'] 
+        options: action.payload.type === 'select' || action.payload.type === 'radio'
+          ? ['Option 1', 'Option 2']
           : undefined
       };
       state.currentForm.fields.push(newField);

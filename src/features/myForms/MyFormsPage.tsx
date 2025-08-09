@@ -84,7 +84,7 @@ const MyFormsPage: React.FC = () => {
               }
               disablePadding
             >
-              <ListItemButton 
+              <ListItemButton
                 component={Link} 
                 to={`/preview/${form.id}`}
               >

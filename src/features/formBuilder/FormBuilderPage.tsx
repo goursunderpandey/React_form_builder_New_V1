@@ -5,8 +5,7 @@ import { RootState } from '../../store/store';
 import { 
   addField, 
   updateField, 
-  removeField, 
-  reorderFields, 
+  removeField,
   saveCurrentForm,
   setCurrentForm,
   resetCurrentForm,
@@ -73,9 +72,6 @@ const FormBuilderPage: React.FC = () => {
     }
   };
 
-  const handleReorder = (fromIndex: number, toIndex: number) => {
-    dispatch(reorderFields({ fromIndex, toIndex }));
-  };
 
   const handleSaveForm = (name: string) => {
     dispatch(setFormName(name));

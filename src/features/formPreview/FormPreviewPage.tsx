@@ -8,9 +8,7 @@ import { Container, Typography, Button } from '@mui/material';
 import FormRenderer from '../../preview/FormRenderer';
 import { useNavigate } from 'react-router-dom';
 import {
-
   Box,
-
 } from '@mui/material';
 
 const FormPreviewPage: React.FC = () => {
@@ -56,12 +54,12 @@ const FormPreviewPage: React.FC = () => {
         >
           Back to My Forms
         </Button>
-        <Button
+        {/* <Button
           variant="outlined"
           onClick={() => navigate(`/create/${formId}`)}
         >
           Edit Form
-        </Button>
+        </Button> */}
       </Box>
     </Container>
   );
