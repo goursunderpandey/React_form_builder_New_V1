@@ -18,118 +18,97 @@ import AddIcon from '@mui/icons-material/Add';
 import { getDefaultValidationMessage } from '../../utils/validation';
 
 interface FieldConfiguratorProps {
-  field: FormField; // The field being edited
-  onUpdate: (updatedField: FormField) => void; // Callback when the field is updated
+  field: FormField; // Current field data
+  onUpdate: (updatedField: FormField) => void; // Pass updated field back
 }
 
 export interface ValidationRule {
-  type: ValidationType;       // The type of validation (e.g., required, minLength)
-  value?: string | number;    // Optional validation parameter (e.g., length or numeric range)
-  message: string;            // Custom error message
+  type: ValidationType;
+  value?: string | number;
+  message: string;
 }
 
 const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }) => {
-  // State for adding a new option (for select, radio, or checkbox fields)
   const [newOption, setNewOption] = useState('');
-
-  // State for adding a new validation
   const [newValidationType, setNewValidationType] = useState<ValidationType>(ValidationType.REQUIRED);
   const [validationValue, setValidationValue] = useState('');
 
-  /**
-   * Handles basic field changes like label and required status.
-   */
+  // Handle changes for label, required, etc.
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, checked } = e.target;
-    onUpdate({
-      ...field,
-      [name]: name === 'required' ? checked : value
-    });
+
+    if (name === "required") {
+      let updatedValidations = [...(field.validations || [])];
+
+      if (checked) {
+        if (!updatedValidations.some(v => v.type === ValidationType.REQUIRED)) {
+          updatedValidations.push({
+            type: ValidationType.REQUIRED,
+            message: getDefaultValidationMessage(ValidationType.REQUIRED)
+          });
+        }
+      } else {
+        updatedValidations = updatedValidations.filter(v => v.type !== ValidationType.REQUIRED);
+      }
+
+      onUpdate({
+        ...field,
+        required: checked,
+        validations: updatedValidations
+      });
+    } else {
+      onUpdate({ ...field, [name]: value });
+    }
   };
 
-  /**
-   * Updates an existing option value for select/radio/checkbox fields.
-   */
+  // Change an option's text
   const handleOptionsChange = (index: number, value: string) => {
     const newOptions = [...(field.options || [])];
     newOptions[index] = value;
-    onUpdate({
-      ...field,
-      options: newOptions
-    });
+    onUpdate({ ...field, options: newOptions });
   };
 
-  /**
-   * Adds a new option to the field.
-   */
+  // Add a new option
   const addOption = () => {
     if (newOption.trim()) {
-      onUpdate({
-        ...field,
-        options: [...(field.options || []), newOption.trim()]
-      });
+      onUpdate({ ...field, options: [...(field.options || []), newOption.trim()] });
       setNewOption('');
     }
   };
 
-  /**
-   * Removes an option from the field.
-   */
+  // Remove an option
   const removeOption = (index: number) => {
     const newOptions = [...(field.options || [])];
     newOptions.splice(index, 1);
-    onUpdate({
-      ...field,
-      options: newOptions
-    });
+    onUpdate({ ...field, options: newOptions });
   };
 
-  /**
-   * Adds a new validation rule to the field.
-   */
+  // Add new validation rule
   const addValidation = () => {
     const newValidation = {
       type: newValidationType,
       value: validationValue,
-      message: getDefaultValidationMessage(newValidationType) // Default error message
+      message: getDefaultValidationMessage(newValidationType)
     };
-
-    onUpdate({
-      ...field,
-      validations: [...(field.validations || []), newValidation]
-    });
-
+    onUpdate({ ...field, validations: [...(field.validations || []), newValidation] });
     setValidationValue('');
   };
 
-  /**
-   * Removes a validation rule.
-   */
+  // Remove a validation rule
   const removeValidation = (index: number) => {
     const newValidations = [...(field.validations || [])];
     newValidations.splice(index, 1);
-    onUpdate({
-      ...field,
-      validations: newValidations
-    });
+    onUpdate({ ...field, validations: newValidations });
   };
 
-  /**
-   * Updates a specific validation rule.
-   */
+  // Update a validation rule
   const updateValidation = (index: number, updates: Partial<ValidationRule>) => {
     const newValidations = [...(field.validations || [])];
     newValidations[index] = { ...newValidations[index], ...updates };
-    onUpdate({
-      ...field,
-      validations: newValidations
-    });
+    onUpdate({ ...field, validations: newValidations });
   };
 
-  /**
-   * Toggles whether the field is a derived field.
-   * If it's derived, it will have parent fields and derivation logic.
-   */
+  // Toggle derived field mode
   const toggleDerivedField = () => {
     onUpdate({
       ...field,
@@ -144,7 +123,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
       <Typography variant="h6" gutterBottom>Field Configuration</Typography>
 
       <Box display="flex" flexDirection="column" gap={2}>
-        {/* Label Field */}
+        {/* Field label */}
         <Box>
           <TextField
             name="label"
@@ -155,7 +134,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
           />
         </Box>
 
-        {/* Required Switch */}
+        {/* Required toggle */}
         <Box>
           <FormControlLabel
             control={
@@ -169,7 +148,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
           />
         </Box>
 
-        {/* Options Management for select/radio/checkbox */}
+        {/* Options for select/radio/checkbox */}
         {['select', 'radio', 'checkbox'].includes(field.type) && (
           <Box>
             <Typography variant="subtitle1" gutterBottom>Options</Typography>
@@ -181,16 +160,11 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
                   fullWidth
                   size="small"
                 />
-                <Button
-                  onClick={() => removeOption(index)}
-                  color="error"
-                  sx={{ ml: 1 }}
-                >
+                <Button onClick={() => removeOption(index)} color="error" sx={{ ml: 1 }}>
                   Remove
                 </Button>
               </Box>
             ))}
-            {/* Add new option input */}
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
               <TextField
                 value={newOption}
@@ -199,35 +173,25 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
                 fullWidth
                 size="small"
               />
-              <Button
-                onClick={addOption}
-                startIcon={<AddIcon />}
-                sx={{ ml: 1 }}
-              >
+              <Button onClick={addOption} startIcon={<AddIcon />} sx={{ ml: 1 }}>
                 Add
               </Button>
             </Box>
           </Box>
         )}
 
-        {/* Validation Rules Section */}
+        {/* Validation rules */}
         <Box>
           <Typography variant="subtitle1" gutterBottom>Validations</Typography>
           {field.validations?.map((validation, index) => (
             <Box key={index} sx={{ mb: 2, p: 1, border: '1px solid #eee', borderRadius: 1 }}>
-              {/* Validation Type Display */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Chip label={validation.type} />
-                <Button
-                  size="small"
-                  onClick={() => removeValidation(index)}
-                  color="error"
-                >
+                <Button size="small" onClick={() => removeValidation(index)} color="error">
                   Remove
                 </Button>
               </Box>
 
-              {/* Validation Value Input for applicable types */}
               {['minLength', 'maxLength', 'min', 'max'].includes(validation.type) && (
                 <TextField
                   label="Value"
@@ -240,7 +204,6 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
                 />
               )}
 
-              {/* Error Message Input */}
               <TextField
                 label="Error message"
                 value={validation.message}
@@ -251,7 +214,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
             </Box>
           ))}
 
-          {/* Add New Validation */}
+          {/* Add validation */}
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
             <FormControl sx={{ minWidth: 120, mr: 1 }} size="small">
               <InputLabel>Validation Type</InputLabel>
@@ -277,16 +240,13 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
               />
             )}
 
-            <Button
-              onClick={addValidation}
-              startIcon={<AddIcon />}
-            >
+            <Button onClick={addValidation} startIcon={<AddIcon />}>
               Add Validation
             </Button>
           </Box>
         </Box>
 
-        {/* Derived Field Toggle */}
+        {/* Derived field toggle */}
         <Box>
           <FormControlLabel
             control={
@@ -299,7 +259,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
           />
         </Box>
 
-        {/* Derivation Logic Input */}
+        {/* Derivation logic input */}
         {field.isDerived && (
           <Box>
             <TextField
