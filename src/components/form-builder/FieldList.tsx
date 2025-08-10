@@ -1,6 +1,6 @@
 import React from 'react';
 import { FormField } from '../../models/field';
-
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 interface FieldListProps {
   fields: FormField[];
   selectedFieldId: string | null;
@@ -48,8 +48,11 @@ const FieldList: React.FC<FieldListProps> = ({
             }}
             title="Delete"
           >
-            🗑️
+            <DeleteOutlineIcon fontSize="small" />
           </button>
+
+
+          
         </li>
       ))}
     </ul>

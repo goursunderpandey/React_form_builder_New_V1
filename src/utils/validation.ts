@@ -1,10 +1,46 @@
-import { ValidationType, ValidationRule } from '../models/field';
+// import { ValidationType, ValidationRule } from '../models/field';
 
+// export const validateField = (value: any, validations: ValidationRule[] = []): string | null => {
+//   for (const validation of validations) {
+//     switch (validation.type) {
+//       case ValidationType.REQUIRED:
+//         if (value === undefined || value === null || value === '') return validation.message;
+//         break;
+//       case ValidationType.MIN_LENGTH:
+//         if (String(value).length < Number(validation.value)) return validation.message;
+//         break;
+//       case ValidationType.MAX_LENGTH:
+//         if (String(value).length > Number(validation.value)) return validation.message;
+//         break;
+//       case ValidationType.EMAIL:
+//         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return validation.message;
+//         break;
+//       case ValidationType.PASSWORD:
+//         if (String(value).length < 8 || !/\d/.test(value)) return validation.message;
+//         break;
+//       case ValidationType.MIN:
+//         if (Number(value) < Number(validation.value)) return validation.message;
+//         break;
+//       case ValidationType.MAX:
+//         if (Number(value) > Number(validation.value)) return validation.message;
+//         break;
+//     }
+//   }
+//   return null;
+// };
+
+
+import { ValidationType, ValidationRule } from '../models/field';
 export const validateField = (value: any, validations: ValidationRule[] = []): string | null => {
   for (const validation of validations) {
     switch (validation.type) {
       case ValidationType.REQUIRED:
-        if (value === undefined || value === null || value === '') return validation.message;
+        if (Array.isArray(value) && value.length === 0) {
+          return validation.message; // Handles checkbox arrays
+        }
+        if (value === undefined || value === null || value === '') {
+          return validation.message;
+        }
         break;
       case ValidationType.MIN_LENGTH:
         if (String(value).length < Number(validation.value)) return validation.message;
@@ -28,7 +64,6 @@ export const validateField = (value: any, validations: ValidationRule[] = []): s
   }
   return null;
 };
-
 export const getDefaultValidationMessage = (type: ValidationType): string => {
   switch (type) {
     case ValidationType.REQUIRED: return 'This field is required';

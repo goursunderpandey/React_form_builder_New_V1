@@ -31,17 +31,24 @@ const FormBuilderPage: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { formId } = useParams();
-  const { currentForm } = useSelector((state: RootState) => state.formBuilder);
-  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 
+  // Get current form data from Redux
+  const { currentForm } = useSelector((state: RootState) => state.formBuilder);
+
+  // Local state
+  const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null); // Currently selected field for configuration
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false); // Controls save form dialog visibility
+
+  /**
+   * Load form data if editing, otherwise reset to empty form
+   */
   useEffect(() => {
     if (formId) {
       const form = getFormById(formId);
       if (form) {
         dispatch(setCurrentForm(form));
         if (form.fields.length > 0) {
-          setSelectedFieldId(form.fields[0].id);
+          setSelectedFieldId(form.fields[0].id); // Auto-select first field
         }
       }
     } else {
@@ -49,44 +56,56 @@ const FormBuilderPage: React.FC = () => {
     }
   }, [formId, dispatch]);
 
+  // The currently selected field object
   const selectedField = currentForm.fields.find(f => f.id === selectedFieldId) || null;
 
+  /**
+   * Add a new field of given type
+   */
   const handleAddField = (type: FieldType) => {
     dispatch(addField({ type }));
+    // Auto-select the first field when adding the very first field
     if (currentForm.fields.length === 0) {
       setSelectedFieldId(currentForm.fields[0]?.id || null);
     }
   };
 
+  /**
+   * Select a field from the list
+   */
   const handleFieldSelect = (fieldId: string) => {
     setSelectedFieldId(fieldId);
   };
 
+  /**
+   * Update field properties
+   */
   const handleFieldUpdate = (updatedField: any) => {
     dispatch(updateField(updatedField));
   };
 
+  /**
+   * Remove a field from the form
+   */
   const handleFieldRemove = (fieldId: string) => {
     dispatch(removeField(fieldId));
+    // If removed field was selected, auto-select another or clear selection
     if (selectedFieldId === fieldId) {
       setSelectedFieldId(currentForm.fields.length > 1 ? currentForm.fields[0].id : null);
     }
   };
 
-  const handleReorder = (fromIndex: number, toIndex: number) => {
-    dispatch(reorderFields({ fromIndex, toIndex }));
-  };
-
+  /**
+   * Save form with given name
+   */
   const handleSaveForm = (name: string) => {
     dispatch(setFormName(name));
     dispatch(saveCurrentForm());
     setSaveDialogOpen(false);
-    navigate('/myforms');
+    navigate('/myforms'); // Redirect to forms list
   };
 
-
-
-  // Correct way to type grid item props
+  // Reusable grid size props for layout
   interface GridItemProps {
     xs?: GridSize;
     sm?: GridSize;
@@ -94,35 +113,32 @@ const FormBuilderPage: React.FC = () => {
     lg?: GridSize;
     xl?: GridSize;
   }
-  
-  const gridItemProps: GridItemProps = {
-    xs: 12,
-    sm: 4
-  };
-  
-  const gridItemMainProps: GridItemProps = {
-    xs: 12,
-    sm: 8
-  };
+
+  const gridItemProps: GridItemProps = { xs: 12, sm: 4 }; // Left panel
+  const gridItemMainProps: GridItemProps = { xs: 12, sm: 8 }; // Right panel
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
+      {/* Page title */}
       <Typography variant="h4" gutterBottom>
         {formId ? 'Edit Form' : 'Create New Form'}
       </Typography>
-      
+
       <Grid container spacing={3}>
+        {/* Left side: Fields list and add buttons */}
         <Grid {...gridItemProps}>
           <Paper elevation={3} sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>Fields</Typography>
+
+            {/* Field list component */}
             <FieldList 
               fields={currentForm.fields} 
               selectedFieldId={selectedFieldId}
               onSelect={handleFieldSelect}
               onRemove={handleFieldRemove}
-              
             />
-            
+
+            {/* Field type buttons */}
             <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               <Button variant="outlined" onClick={() => handleAddField(FieldType.TEXT)}>Text</Button>
               <Button variant="outlined" onClick={() => handleAddField(FieldType.NUMBER)}>Number</Button>
@@ -134,15 +150,18 @@ const FormBuilderPage: React.FC = () => {
             </Box>
           </Paper>
         </Grid>
-        
+
+        {/* Right side: Field configurator */}
         <Grid {...gridItemMainProps}>
           <Paper elevation={3} sx={{ p: 2, minHeight: '500px' }}>
             {selectedField ? (
+              // Show configurator when a field is selected
               <FieldConfigurator 
                 field={selectedField} 
                 onUpdate={handleFieldUpdate} 
               />
             ) : (
+              // Show helper text when no field is selected
               <Typography variant="body1" color="textSecondary">
                 {currentForm.fields.length === 0 
                   ? 'Add a field to get started' 
@@ -152,7 +171,8 @@ const FormBuilderPage: React.FC = () => {
           </Paper>
         </Grid>
       </Grid>
-      
+
+      {/* Save button */}
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
         <Button 
           variant="contained" 
@@ -163,7 +183,8 @@ const FormBuilderPage: React.FC = () => {
           Save Form
         </Button>
       </Box>
-      
+
+      {/* Save form dialog */}
       <SaveFormDialog
         open={saveDialogOpen}
         onClose={() => setSaveDialogOpen(false)}

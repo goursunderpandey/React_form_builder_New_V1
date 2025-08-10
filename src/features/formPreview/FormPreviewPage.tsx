@@ -52,15 +52,9 @@ const FormPreviewPage: React.FC = () => {
         <Button
           variant="contained"
           onClick={() => navigate('/myforms')}
-          sx={{ mr: 2 }}
+          sx={{ mb: 2 }}
         >
           Back to My Forms
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => navigate(`/create/${formId}`)}
-        >
-          Edit Form
         </Button>
       </Box>
     </Container>
