@@ -29,7 +29,10 @@ export interface ValidationRule {
 }
 
 const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }) => {
+  // State for adding a new option (for select, radio, or checkbox fields)
   const [newOption, setNewOption] = useState('');
+
+  // State for adding a new validation
   const [newValidationType, setNewValidationType] = useState<ValidationType>(ValidationType.REQUIRED);
   const [validationValue, setValidationValue] = useState('');
 
@@ -88,7 +91,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
     const newValidation = {
       type: newValidationType,
       value: validationValue,
-      message: getDefaultValidationMessage(newValidationType)
+      message: getDefaultValidationMessage(newValidationType) // Default error message
     };
     onUpdate({ ...field, validations: [...(field.validations || []), newValidation] });
     setValidationValue('');
@@ -165,6 +168,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
                 </Button>
               </Box>
             ))}
+            {/* Add new option input */}
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
               <TextField
                 value={newOption}
@@ -185,6 +189,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
           <Typography variant="subtitle1" gutterBottom>Validations</Typography>
           {field.validations?.map((validation, index) => (
             <Box key={index} sx={{ mb: 2, p: 1, border: '1px solid #eee', borderRadius: 1 }}>
+              {/* Validation Type Display */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Chip label={validation.type} />
                 <Button size="small" onClick={() => removeValidation(index)} color="error">
