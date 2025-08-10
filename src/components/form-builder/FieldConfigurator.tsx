@@ -17,20 +17,27 @@ import AddIcon from '@mui/icons-material/Add';
 import { getDefaultValidationMessage } from '../../utils/validation';
 
 interface FieldConfiguratorProps {
-  field: FormField;
-  onUpdate: (updatedField: FormField) => void;
+  field: FormField; // The field being edited
+  onUpdate: (updatedField: FormField) => void; // Callback when the field is updated
 }
+
 export interface ValidationRule {
-  type: ValidationType;
-  value?: string | number;  
-  message: string;          
+  type: ValidationType;       // The type of validation (e.g., required, minLength)
+  value?: string | number;    // Optional validation parameter (e.g., length or numeric range)
+  message: string;            // Custom error message
 }
 
 const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }) => {
+  // State for adding a new option (for select, radio, or checkbox fields)
   const [newOption, setNewOption] = useState('');
+
+  // State for adding a new validation
   const [newValidationType, setNewValidationType] = useState<ValidationType>(ValidationType.REQUIRED);
   const [validationValue, setValidationValue] = useState('');
 
+  /**
+   * Handles basic field changes like label and required status.
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, checked } = e.target;
     onUpdate({
@@ -39,6 +46,9 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
     });
   };
 
+  /**
+   * Updates an existing option value for select/radio/checkbox fields.
+   */
   const handleOptionsChange = (index: number, value: string) => {
     const newOptions = [...(field.options || [])];
     newOptions[index] = value;
@@ -48,6 +58,9 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
     });
   };
 
+  /**
+   * Adds a new option to the field.
+   */
   const addOption = () => {
     if (newOption.trim()) {
       onUpdate({
@@ -58,6 +71,9 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
     }
   };
 
+  /**
+   * Removes an option from the field.
+   */
   const removeOption = (index: number) => {
     const newOptions = [...(field.options || [])];
     newOptions.splice(index, 1);
@@ -67,11 +83,14 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
     });
   };
 
+  /**
+   * Adds a new validation rule to the field.
+   */
   const addValidation = () => {
     const newValidation = {
       type: newValidationType,
       value: validationValue,
-      message: getDefaultValidationMessage(newValidationType)
+      message: getDefaultValidationMessage(newValidationType) // Default error message
     };
 
     onUpdate({
@@ -82,6 +101,9 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
     setValidationValue('');
   };
 
+  /**
+   * Removes a validation rule.
+   */
   const removeValidation = (index: number) => {
     const newValidations = [...(field.validations || [])];
     newValidations.splice(index, 1);
@@ -91,6 +113,9 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
     });
   };
 
+  /**
+   * Updates a specific validation rule.
+   */
   const updateValidation = (index: number, updates: Partial<ValidationRule>) => {
     const newValidations = [...(field.validations || [])];
     newValidations[index] = { ...newValidations[index], ...updates };
@@ -100,6 +125,10 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
     });
   };
 
+  /**
+   * Toggles whether the field is a derived field.
+   * If it's derived, it will have parent fields and derivation logic.
+   */
   const toggleDerivedField = () => {
     onUpdate({
       ...field,
@@ -114,6 +143,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
       <Typography variant="h6" gutterBottom>Field Configuration</Typography>
 
       <Box display="flex" flexDirection="column" gap={2}>
+        {/* Label Field */}
         <Box>
           <TextField
             name="label"
@@ -124,6 +154,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
           />
         </Box>
 
+        {/* Required Switch */}
         <Box>
           <FormControlLabel
             control={
@@ -137,6 +168,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
           />
         </Box>
 
+        {/* Options Management for select/radio/checkbox */}
         {['select', 'radio', 'checkbox'].includes(field.type) && (
           <Box>
             <Typography variant="subtitle1" gutterBottom>Options</Typography>
@@ -157,6 +189,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
                 </Button>
               </Box>
             ))}
+            {/* Add new option input */}
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
               <TextField
                 value={newOption}
@@ -176,10 +209,12 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
           </Box>
         )}
 
+        {/* Validation Rules Section */}
         <Box>
           <Typography variant="subtitle1" gutterBottom>Validations</Typography>
           {field.validations?.map((validation, index) => (
             <Box key={index} sx={{ mb: 2, p: 1, border: '1px solid #eee', borderRadius: 1 }}>
+              {/* Validation Type Display */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Chip label={validation.type} />
                 <Button
@@ -190,6 +225,8 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
                   Remove
                 </Button>
               </Box>
+
+              {/* Validation Value Input for applicable types */}
               {['minLength', 'maxLength', 'min', 'max'].includes(validation.type) && (
                 <TextField
                   label="Value"
@@ -201,6 +238,8 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
                   sx={{ mb: 1 }}
                 />
               )}
+
+              {/* Error Message Input */}
               <TextField
                 label="Error message"
                 value={validation.message}
@@ -211,6 +250,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
             </Box>
           ))}
 
+          {/* Add New Validation */}
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
             <FormControl sx={{ minWidth: 120, mr: 1 }} size="small">
               <InputLabel>Validation Type</InputLabel>
@@ -245,6 +285,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
           </Box>
         </Box>
 
+        {/* Derived Field Toggle */}
         <Box>
           <FormControlLabel
             control={
@@ -257,6 +298,7 @@ const FieldConfigurator: React.FC<FieldConfiguratorProps> = ({ field, onUpdate }
           />
         </Box>
 
+        {/* Derivation Logic Input */}
         {field.isDerived && (
           <Box>
             <TextField

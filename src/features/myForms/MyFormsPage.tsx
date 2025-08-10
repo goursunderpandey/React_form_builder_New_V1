@@ -22,21 +22,32 @@ import AddIcon from '@mui/icons-material/Add';
 const MyFormsPage: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Get the list of forms from Redux store
   const { forms } = useSelector((state: RootState) => state.formBuilder);
 
+  // Load all saved forms when the component mounts
   useEffect(() => {
     dispatch(loadForms());
   }, [dispatch]);
 
+  /**
+   * Handle deletion of a form
+   * @param id - ID of the form to delete
+   * @param e - Click event to stop navigation
+   */
   const handleDelete = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent navigation when clicking delete
     e.preventDefault();
+
+    // Ask user for confirmation before deleting
     if (window.confirm('Are you sure you want to delete this form?')) {
-      deleteForm(id);
-      dispatch(loadForms());
+      deleteForm(id); // Remove form from storage
+      dispatch(loadForms()); // Refresh list
     }
   };
 
+  // If no forms exist, display a message with a "Create New Form" button
   if (forms.length === 0) {
     return (
       <Container maxWidth="md" sx={{ mt: 4, textAlign: 'center' }}>
@@ -57,6 +68,7 @@ const MyFormsPage: React.FC = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
+      {/* Page title and "New Form" button */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">My Forms</Typography>
         <Button 
@@ -68,6 +80,7 @@ const MyFormsPage: React.FC = () => {
         </Button>
       </Box>
       
+      {/* Forms list */}
       <Paper elevation={3}>
         <List>
           {forms.map(form => (
@@ -84,6 +97,7 @@ const MyFormsPage: React.FC = () => {
               }
               disablePadding
             >
+              {/* Clicking a list item navigates to the form preview page */}
               <ListItemButton
                 component={Link} 
                 to={`/preview/${form.id}`}
